@@ -68,6 +68,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener{
     Timer gameLoop;
     Timer placePipesTimer;
     boolean gameOver = false;
+    double score = 0;
 
     FlappyBird(){
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -134,6 +135,15 @@ public void draw(Graphics g){
         Pipe pipe = pipes.get(i);
         g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
     }
+    //Score
+    g.setColor(Color.white);
+    g.setFont(new Font("Arial", Font.PLAIN, 32));
+    if(gameOver){
+        g.drawString("Game Over: " +String.valueOf((int) score), 10, 35);
+    }else {
+        g.drawString(String.valueOf((int) score), 10, 35);
+    }
+
 }
     public void move(){
         //Bird
@@ -145,6 +155,11 @@ public void draw(Graphics g){
         for (int i = 0; i < pipes.size(); i++) {
             Pipe pipe = pipes.get(i);
             pipe.x += velocityX;
+
+            if(!pipe.passed && bird.x > pipe.x + pipe.width){
+                pipe.passed = true;
+                score += 0.5;   // 0.5 Because there are two pipes, So 0.5 * 2 = 1, One for each set of pipes
+            }
 
             if(collision(bird, pipe)){
                 gameOver = true;
