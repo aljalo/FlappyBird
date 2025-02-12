@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Random;
 import javax.swing.*;
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener{
@@ -9,10 +8,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener{
     int boardHeight = 640;
 
     //Images
-    Image backgroundImage;
-    Image birdImage;
-    Image topPipeImage;
-    Image bottomPipeImage;
+    Image backgroundImg;
+    Image birdImg;
+    Image topPipeImg;
+    Image bottomPipeImg;
 
     //Bird
     int birdX = boardWidth/8;
@@ -48,16 +47,24 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener{
         int width = pipeWidth;
         int height = pipeHeight;
         Image img;
+        boolean passed = false;
+
+        Pipe(Image img){
+            this.img = img;
+        }
     }
 
 
     //Game Logic
     Bird bird;
+    int velocityX = -4;     // move pipe to the left speed (simulates bird moving  right)
     int velocityY = 0;
     int gravity = 1;
 
-    Timer gameLoop;
+    ArrayList<Pipe> pipes;
 
+    Timer gameLoop;
+    Timer placePipesTimer;
 
     FlappyBird(){
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -67,19 +74,35 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener{
 
 
         //load images
-        backgroundImage = new ImageIcon(getClass().getResource("./flappybirdbg.png")).getImage();
-        birdImage = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
-        topPipeImage = new ImageIcon(getClass().getResource("./toppipe.png")).getImage();
-        bottomPipeImage = new ImageIcon(getClass().getResource("./bottompipe.png")).getImage();
+        backgroundImg = new ImageIcon(getClass().getResource("./flappybirdbg.png")).getImage();
+        birdImg = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
+        topPipeImg = new ImageIcon(getClass().getResource("./toppipe.png")).getImage();
+        bottomPipeImg = new ImageIcon(getClass().getResource("./bottompipe.png")).getImage();
 
         //Bird
-        bird = new Bird(birdImage);
+        bird = new Bird(birdImg);
+        pipes = new ArrayList<Pipe>();
+
+        //Place pipes timer
+        placePipesTimer = new Timer(1500, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                placePipes();
+            }
+        });
+        placePipesTimer.start();
 
         //Game Timer
         gameLoop = new Timer(1000/60, this);
         gameLoop.start();
 
     }
+
+    public void placePipes(){
+        Pipe toppipe = new Pipe(topPipeImg);
+        pipes.add(toppipe);
+    }
+
 public void paintComponent(Graphics g){
         super.paintComponent(g);
         draw(g);
@@ -88,17 +111,29 @@ public void draw(Graphics g){
         //System.out.println("draw");
 
         //Background
-    g.drawImage(backgroundImage, 0,0, boardWidth, boardHeight, null);
+    g.drawImage(backgroundImg, 0,0, boardWidth, boardHeight, null);
 
 
     //Bird
     g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
+
+    //Pipe
+    for (int i = 0; i < pipes.size(); i++) {
+        Pipe pipe = pipes.get(i);
+        g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
+    }
 }
     public void move(){
         //Bird
         velocityY += gravity;
         bird.y += velocityY;
         bird.y = Math.max(bird.y, 0);
+
+        //Pipes
+        for (int i = 0; i < pipes.size(); i++) {
+            Pipe pipe = pipes.get(i);
+            pipe.x += velocityX;
+        }
     }
     @Override
     public void actionPerformed(ActionEvent e) {
